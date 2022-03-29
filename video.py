@@ -10,6 +10,11 @@ path = easygui.diropenbox(msg="Select your image directory.", title=None)
 if path is None:
     sys.exit(0)
 
+# Get image scaling mode
+mode = easygui.choicebox("Choose your desired image scaling mode.", None, ["Stretch", "Enlarge"])
+if mode is None:
+    sys.exit(0)
+
 # Get desired frame video
 frameDelay = None
 try:
@@ -17,7 +22,6 @@ try:
     frameDelay = int(frameDelayPrompt)
 except:
     pass
-
 
 # Begin image correction
 os.system("mkdir tmp")
@@ -29,7 +33,20 @@ for file in os.listdir(path):
         width, height = im.size
         print(str(file) + " | " + str(width) + "x" + str(height))
         print("Processing " + str(file) + "...")
-        imResize = im.resize((1920, 1080), Image.ANTIALIAS)
+        imResize = None
+        if mode == "Stretch":
+            imResize = im.resize((1920, 1080), Image.ANTIALIAS)
+        elif mode == "Enlarge":
+            if width > height:
+                ratio = 1920 / width
+                h = height * ratio
+                imResize = im.resize((1920, int(h)), Image.ANTIALIAS)
+            elif width < height:
+                ratio = 1080 / height
+                w = width * ratio
+                imResize = im.resize((int(w), 1080), Image.ANTIALIAS)
+            elif width == height:
+                imResize = im.resize((1080, 1080), Image.ANTIALIAS)
         if file.endswith(".jpg") or file.endswith(".jpeg"):
             imResize.save("./tmp/" + file, 'JPEG', quality = 95)
             print("Successfully processed " + str(file))
